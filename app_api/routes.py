@@ -116,13 +116,9 @@ def edit_user(id):
 @app.route('/api/give_role/<int:id>',  methods=['PUT'])
 def give_role(id):
     user = filter_id(id)
-    if not user:
+    if not user or not request.json:
         abort(500)
-    try:
-        name_role = request.json['role']
-        print(name_role)
-    except KeyError:
-        abort(500)
+    name_role = request.json['role']
     if name_role:
         role_all = models.Role.query.all()
         print(role_all)
@@ -135,16 +131,11 @@ def give_role(id):
                 user.role_id = role.id
                 db.session.add(user)
                 db.session.commit()
-
-                user_dict = dict(full_name=user.full_name,
-                                 role=user.role.role_name)
-
+                user_dict = dict(full_name=user.full_name, role=user.role.role_name)
                 return jsonify({'new_role_assigned': user_dict}), 201
-
             else:
                 print('Error. This is role not found')
                 abort(500)
-
     else:
         abort(400)
 
