@@ -17,6 +17,20 @@ def add_role(role_name):
     print('add new role')
     return role_list
 
+
+def check_request_user_chenge(request):
+    if len(request) == 2:
+        full_name_replace = request['full_name']
+        phone_replace = request['phone']
+    elif not 'full_name' in request:
+        full_name_replace = ''
+        phone_replace = request['phone']
+    elif not 'phone' in request:
+        full_name_replace = request['full_name']
+        phone_replace = ''
+    return full_name_replace, phone_replace
+
+
 def filter_id(key_id):
     user = db.session.query(models.Users).filter(models.Users.id == key_id).all()
     if len(user) >=2:
@@ -24,12 +38,12 @@ def filter_id(key_id):
     user = user[0]
     return user
 
+
 def add_user(f_name, t_phone):
     user_all = models.Users.query.all()
     if user_all:
         for user in user_all:
             if user.full_name == f_name and user.phone == t_phone:
-                print('Error. There is the user in the database')
                 abort(500)
     if not user_all:
         id = 0
@@ -39,9 +53,7 @@ def add_user(f_name, t_phone):
     db.session.add(create_user)
     db.session.commit()
     user_list = filter_id(id)
-    print('add new user')
     return user_list
-
 
 
 def user_replace(id, name_replace, phone_replace):
@@ -88,27 +100,17 @@ def create_user():
 @app.route('/api/edit_user/<int:id>',  methods=['PUT'])
 def edit_user(id):
     user = filter_id(id)
-    try:
-        full_name_replace = request.json['full_name']
-
-    except KeyError:
-        full_name_replace = ''
-    try:
-        phone_replace = request.json['phone']
-    except KeyError:
-        phone_replace = ''
+    if not request.json or not 'full_name' in request.json and not 'phone' in request.json:
+        abort(400)
+    full_name_replace, phone_replace = check_request_user_chenge(request.json)
     if full_name_replace or phone_replace:
         user_replace(id, full_name_replace, phone_replace)
-        user = filter_id(id)
-        user_dict = dict(id=user.id,
-                         full_name=user.full_name,
-                         phone=user.phone,
-                         created_on=user.created_on,
-                         updated_on=user.updated_on)
-
+        user_dict = dict(id=user.id,full_name=user.full_name, phone=user.phone,
+                         created_on=user.created_on, updated_on=user.updated_on, role = user.role.role_name)
         return jsonify({'data changed': user_dict}), 201
     else:
         abort(400)
+
 
 
 @app.route('/api/give_role/<int:id>',  methods=['PUT'])
@@ -166,21 +168,14 @@ def get_users():
     for u in users:
         if u.role:
             user_dict = dict(id=u.id,
-                             full_name=u.full_name,
-                             phone=u.phone,
-                             created_on=u.created_on,
-                             updated_on=u.updated_on,
-                             role=u.role.role_name)
+                             full_name=u.full_name, phone=u.phone, created_on=u.created_on,
+                             updated_on=u.updated_on, role=u.role.role_name)
             users_list.append(user_dict)
         else:
             user_dict = dict(id=u.id,
-                             full_name=u.full_name,
-                             phone=u.phone,
-                             created_on=u.created_on,
-                             updated_on=u.updated_on,
-                             role='not assigned')
+                             full_name=u.full_name, phone=u.phone, created_on=u.created_on,
+                             updated_on=u.updated_on, role='not assigned')
             users_list.append(user_dict)
-
     return jsonify({'users': users_list})
 
 
