@@ -116,7 +116,7 @@ def edit_user(id):
 @app.route('/api/give_role/<int:id>',  methods=['PUT'])
 def give_role(id):
     user = filter_id(id)
-    if not user or not request.json:
+    if not user or not request.json or not 'role' in request.json:
         abort(500)
     name_role = request.json['role']
     if name_role:
