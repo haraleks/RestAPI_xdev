@@ -67,11 +67,7 @@ def give_role(id):
                     abort(500)
                 else:
                     add_in_table_role(user, id_role_list)
-        user = filter_id(id)
-        role_list = []
-        for r in user.roles:
-            role_list.append(r.role_name)
-        user_dict = dict(full_name=user.full_name, role=role_list)
+        user_dict = show_user_roles(id)
         return jsonify({'new_role_assigned': user_dict}), 201
     else:
         abort(400)
@@ -100,11 +96,7 @@ def remove_role(id):
                     else:
                         user.roles.remove(role_all[r-1])
                         db.session.commit()
-            user = filter_id(id)
-            role_list = []
-            for r in user.roles:
-                role_list.append(r.role_name)
-            user_dict = dict(full_name=user.full_name, role=role_list)
+            user_dict = show_user_roles(id)
             return jsonify({'new_role_assigned': user_dict}), 201
     else:
         abort(400)

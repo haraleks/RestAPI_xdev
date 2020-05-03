@@ -17,6 +17,14 @@ def add_in_table_role(user, id_role_list):
     db.session.commit()
 
 
+def show_user_roles(id):
+    user = filter_id(id)
+    role_list = []
+    for r in user.roles:
+        role_list.append(r.role_name)
+    user_dict = dict(full_name=user.full_name, role=role_list)
+    return user_dict
+
 def add_role(role_name: list):
     role_all = models.Role.query.all()
     for role in role_all:
