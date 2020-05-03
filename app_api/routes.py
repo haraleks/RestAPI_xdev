@@ -62,11 +62,9 @@ def give_role(id):
         if type(id_role_list) == int:
             add_in_table_role(user, id_role_list)
         else:
+            check_roles_not_found(id_role_list, roles_list)
             for r in id_role_list:
-                if not r in roles_list:
-                    abort(500)
-                else:
-                    add_in_table_role(user, r)
+                add_in_table_role(user, r)
         user_dict = show_user_roles(id)
         return jsonify({'new_role_assigned': user_dict}), 201
     else:
@@ -81,23 +79,17 @@ def remove_role(id):
     id_role_list = request.json['id']
     if id_role_list:
         role_all = models.Role.query.all()
-        if role_all:
-            role_list = []
-            for role in role_all:
-                role_list.append(role.id)
-            if type(id_role_list) == int:
-                user.roles.remove(role_all[id_role_list - 1])
+        roles_list = roles_id_list(role_all)
+        if type(id_role_list) == int:
+            user.roles.remove(role_all[id_role_list - 1])
+            db.session.commit()
+        else:
+            check_roles_not_found(id_role_list, roles_list)
+            for r in id_role_list:
+                user.roles.remove(role_all[r-1])
                 db.session.commit()
-            else:
-                for r in id_role_list:
-                    print(r)
-                    if not r in role_list:
-                        abort(500)
-                    else:
-                        user.roles.remove(role_all[r-1])
-                        db.session.commit()
-            user_dict = show_user_roles(id)
-            return jsonify({'new_role_assigned': user_dict}), 201
+        user_dict = show_user_roles(id)
+        return jsonify({'new_role_assigned': user_dict}), 201
     else:
         abort(400)
 

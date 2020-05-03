@@ -10,6 +10,10 @@ def roles_id_list(role_all):
             role_list.append(role.id)
     return role_list
 
+def check_roles_not_found(id_role_list, roles_list):
+    for r in id_role_list:
+        if not r in roles_list:
+            abort(500)
 
 def add_in_table_role(user, id_role_list):
     role_all = models.Role.query.all()
