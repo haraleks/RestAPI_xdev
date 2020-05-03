@@ -66,7 +66,7 @@ def give_role(id):
                 if not r in roles_list:
                     abort(500)
                 else:
-                    add_in_table_role(user, id_role_list)
+                    add_in_table_role(user, r)
         user_dict = show_user_roles(id)
         return jsonify({'new_role_assigned': user_dict}), 201
     else:
@@ -133,13 +133,16 @@ def get_users():
 def not_found(error):
     return make_response(jsonify({'error': 'Data is in the database'}), 404)
 
+
 @app.errorhandler(400)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 400)
 
+
 @app.errorhandler(500)
 def repeat_inform(error):
     return make_response(jsonify({'error': 'Data is not correct'}), 500)
+
 
 @app.errorhandler(401)
 def not_found(error):
