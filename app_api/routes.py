@@ -27,7 +27,6 @@ def create_user():
             user_dict = dict(id=new_user.id,
                              full_name=new_user.full_name, phone=new_user.phone,
                              created_on=new_user.created_on, updated_on=new_user.updated_on)
-
             return jsonify({'new_user': user_dict}), 201
         else:
             abort(500)
@@ -59,29 +58,21 @@ def give_role(id):
     id_role_list = request.json['id']
     if id_role_list:
         role_all = models.Role.query.all()
-        if role_all:
-            role_list = []
-            for role in role_all:
-                role_list.append(role.id)
-            if type(id_role_list) == int:
-                user.roles.append(role_all[id_role_list - 1])
-                db.session.add(user)
-                db.session.commit()
-            else:
-                for r in id_role_list:
-                    print(r)
-                    if not r in role_list:
-                        abort(500)
-                    else:
-                        user.roles.append(role_all[r-1])
-                        db.session.add(user)
-                        db.session.commit()
-            user = filter_id(id)
-            role_list = []
-            for r in user.roles:
-                role_list.append(r.role_name)
-            user_dict = dict(full_name=user.full_name, role=role_list)
-            return jsonify({'new_role_assigned': user_dict}), 201
+        roles_list = roles_id_list(role_all)
+        if type(id_role_list) == int:
+            add_in_table_role(user, id_role_list)
+        else:
+            for r in id_role_list:
+                if not r in roles_list:
+                    abort(500)
+                else:
+                    add_in_table_role(user, id_role_list)
+        user = filter_id(id)
+        role_list = []
+        for r in user.roles:
+            role_list.append(r.role_name)
+        user_dict = dict(full_name=user.full_name, role=role_list)
+        return jsonify({'new_role_assigned': user_dict}), 201
     else:
         abort(400)
 

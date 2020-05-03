@@ -3,6 +3,20 @@ from flask import abort
 from app_api import models, db
 
 
+def roles_id_list(role_all):
+    if role_all:
+        role_list = []
+        for role in role_all:
+            role_list.append(role.id)
+    return role_list
+
+def add_in_table_role(user, id_role_list):
+    role_all = models.Role.query.all()
+    user.roles.append(role_all[id_role_list - 1])
+    db.session.add(user)
+    db.session.commit()
+
+
 def add_role(role_name: list):
     role_all = models.Role.query.all()
     for role in role_all:
