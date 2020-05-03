@@ -51,29 +51,70 @@ def edit_user(id):
         abort(400)
 
 
-@app.route('/api/give_role/<int:id>',  methods=['PUT'])
+@app.route('/api/give_roles/<int:id>',  methods=['PUT'])
 def give_role(id):
     user = filter_id(id)
-    if not user or not request.json or not 'role' in request.json:
+    if not user or not request.json or not 'id' in request.json:
         abort(500)
-    name_role = request.json['role']
-    if name_role:
+    id_role_list = request.json['id']
+    if id_role_list:
         role_all = models.Role.query.all()
-        print(role_all)
         if role_all:
             role_list = []
             for role in role_all:
-                role_list.append(role.role_name)
-            if name_role in role_list:
-                role = db.session.query(models.Role).filter(models.Role.role_name == name_role).one()
-                user.role_id = role.id
+                role_list.append(role.id)
+            if type(id_role_list) == int:
+                user.roles.append(role_all[id_role_list - 1])
                 db.session.add(user)
                 db.session.commit()
-                user_dict = dict(full_name=user.full_name, role=user.role.role_name)
-                return jsonify({'new_role_assigned': user_dict}), 201
             else:
-                print('Error. This is role not found')
-                abort(500)
+                for r in id_role_list:
+                    print(r)
+                    if not r in role_list:
+                        abort(500)
+                    else:
+                        user.roles.append(role_all[r-1])
+                        db.session.add(user)
+                        db.session.commit()
+            user = filter_id(id)
+            role_list = []
+            for r in user.roles:
+                role_list.append(r.role_name)
+            user_dict = dict(full_name=user.full_name, role=role_list)
+            return jsonify({'new_role_assigned': user_dict}), 201
+    else:
+        abort(400)
+
+
+@app.route('/api/remove_roles/<int:id>',  methods=['PUT'])
+def remove_role(id):
+    user = filter_id(id)
+    if not user or not request.json or not 'id' in request.json:
+        abort(500)
+    id_role_list = request.json['id']
+    if id_role_list:
+        role_all = models.Role.query.all()
+        if role_all:
+            role_list = []
+            for role in role_all:
+                role_list.append(role.id)
+            if type(id_role_list) == int:
+                user.roles.remove(role_all[id_role_list - 1])
+                db.session.commit()
+            else:
+                for r in id_role_list:
+                    print(r)
+                    if not r in role_list:
+                        abort(500)
+                    else:
+                        user.roles.remove(role_all[r-1])
+                        db.session.commit()
+            user = filter_id(id)
+            role_list = []
+            for r in user.roles:
+                role_list.append(r.role_name)
+            user_dict = dict(full_name=user.full_name, role=role_list)
+            return jsonify({'new_role_assigned': user_dict}), 201
     else:
         abort(400)
 
@@ -95,17 +136,14 @@ def get_users():
     users = models.Users.query.all()
     users_list = []
     for u in users:
-        if u.role:
-            user_dict = dict(id=u.id,
-                             full_name=u.full_name, phone=u.phone, created_on=u.created_on,
-                             updated_on=u.updated_on, role=u.role.role_name)
-            users_list.append(user_dict)
-        else:
-            user_dict = dict(id=u.id,
-                             full_name=u.full_name, phone=u.phone, created_on=u.created_on,
-                             updated_on=u.updated_on, role='not assigned')
-            users_list.append(user_dict)
-    return jsonify({'users': users_list})
+        u_roles_list = []
+        for r in u.roles:
+            u_roles_list.append(r.role_name)
+        user_dict = dict(id=u.id,
+                         full_name=u.full_name, phone=u.phone, created_on=u.created_on,
+                         updated_on=u.updated_on, roles=u_roles_list)
+        users_list.append(user_dict)
+    return jsonify({'users': users_list}), 201
 
 
 @app.errorhandler(404)

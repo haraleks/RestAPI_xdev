@@ -3,7 +3,7 @@ from flask import abort
 from app_api import models, db
 
 
-def add_role(role_name):
+def add_role(role_name: list):
     role_all = models.Role.query.all()
     for role in role_all:
         if role.role_name == role_name:
